@@ -40,7 +40,7 @@ services:
       - MONGODB_URI=mongodb://mongodb-jenkins:27017/mern-auth
       - JWT_SECRET=jenkins-jwt-secret-key-2024-ci-cd-pipeline
       - JWT_EXPIRE=7d
-      - CLIENT_URL=http://localhost:81
+      - CLIENT_URL=http://56.228.10.255:81
       - PORT=5000
     depends_on:
       - mongodb-jenkins
@@ -60,7 +60,7 @@ services:
       - ./frontend:/app  # Volume mount for code as per Part-II requirement
     command: sh -c "npm install && npm start"
     environment:
-      - REACT_APP_API_URL=http://localhost:5001
+      - REACT_APP_API_URL=http://56.228.10.255:5001/api
       - PORT=3000
       - WATCHPACK_POLLING=true
     depends_on:

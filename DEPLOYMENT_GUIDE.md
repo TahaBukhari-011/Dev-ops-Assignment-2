@@ -53,7 +53,7 @@ mern-auth-app/
 
 ```bash
 # Connect to EC2 instance
-ssh -i your-key.pem ubuntu@your-ec2-ip
+ssh -i your-key.pem ubuntu@56.228.10.255
 
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -123,8 +123,8 @@ Open the following ports in AWS Security Group:
 
 ### Step 6: Access Application
 
-- Frontend: `http://your-ec2-ip`
-- Backend API: `http://your-ec2-ip:5000/api/health`
+- Frontend: `http://56.228.10.255`
+- Backend API: `http://56.228.10.255:5000/api/health`
 
 ### Data Persistence
 
@@ -178,7 +178,7 @@ sudo systemctl restart jenkins
 
 ### Step 2: Configure Jenkins
 
-1. Open Jenkins: `http://your-jenkins-ec2-ip:8080`
+1. Open Jenkins: `http://56.228.10.255:8080`
 2. Complete initial setup wizard
 3. Install required plugins:
    - Git plugin
@@ -208,10 +208,10 @@ sudo systemctl restart jenkins
 
 ### Step 5: Access Jenkins Build
 
-- Frontend: `http://your-jenkins-ec2-ip:3001`
-- Backend API: `http://your-jenkins-ec2-ip:5001/api/health`
-- Nginx Proxy: `http://your-jenkins-ec2-ip:81`
-- MongoDB: `mongodb://your-jenkins-ec2-ip:27018`
+- Frontend: `http://56.228.10.255:3001`
+- Backend API: `http://56.228.10.255:5001/api/health`
+- Nginx Proxy: `http://56.228.10.255:81`
+- MongoDB: `mongodb://56.228.10.255:27018`
 
 ### Pipeline Stages
 

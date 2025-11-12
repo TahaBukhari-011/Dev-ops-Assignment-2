@@ -167,7 +167,7 @@ sudo -u jenkins docker ps
 
 #### 1. Pipeline Creation
 
-1. Open Jenkins: `http://your-ec2-ip:8080`
+1. Open Jenkins: `http://56.228.10.255:8080`
 2. Create new Pipeline job
 3. Configure Git repository
 4. Set Jenkinsfile path

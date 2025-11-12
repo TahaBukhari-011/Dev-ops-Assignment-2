@@ -1,7 +1,7 @@
 FROM node:18-alpine as builder
 
 # Accept build argument for API URL
-ARG REACT_APP_API_URL=http://localhost:5000/api
+ARG REACT_APP_API_URL=http://56.228.10.255:5000/api
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 WORKDIR /app
