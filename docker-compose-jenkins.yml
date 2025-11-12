@@ -1,0 +1,95 @@
+version: '3.8'
+
+# Part-II: Jenkins Pipeline Docker Compose
+# This compose file uses volume mounts instead of Dockerfiles
+# Uses different ports and container names as required
+
+services:
+  # MongoDB Service - Jenkins Build
+  mongodb-jenkins:
+    image: mongo:6.0
+    container_name: mern-mongodb-jenkins
+    ports:
+      - "27018:27017"  # Different port from Part-I (27017)
+    volumes:
+      - mongodb_jenkins_data:/data/db  # Persistent volume
+    environment:
+      - MONGO_INITDB_DATABASE=mern-auth
+    networks:
+      - mern-jenkins-network
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend Service - Jenkins Build
+  # Using volume mount for code instead of Dockerfile
+  backend-jenkins:
+    image: node:18-alpine
+    container_name: mern-backend-jenkins
+    working_dir: /app
+    ports:
+      - "5001:5000"  # Different external port (5001 instead of 5000)
+    volumes:
+      - ./backend:/app  # Volume mount for code as per Part-II requirement
+    command: sh -c "npm install && npm start"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb-jenkins:27017/mern-auth
+      - JWT_SECRET=jenkins-jwt-secret-key-2024-ci-cd-pipeline
+      - JWT_EXPIRE=7d
+      - CLIENT_URL=http://localhost:81
+      - PORT=5000
+    depends_on:
+      - mongodb-jenkins
+    networks:
+      - mern-jenkins-network
+    restart: unless-stopped
+
+  # Frontend Service - Jenkins Build
+  # Using volume mount for code instead of Dockerfile
+  frontend-jenkins:
+    image: node:18-alpine
+    container_name: mern-frontend-jenkins
+    working_dir: /app
+    ports:
+      - "3001:3000"  # Different port (3001 instead of 3000)
+    volumes:
+      - ./frontend:/app  # Volume mount for code as per Part-II requirement
+    command: sh -c "npm install && npm start"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001
+      - PORT=3000
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend-jenkins
+    networks:
+      - mern-jenkins-network
+    restart: unless-stopped
+
+  # Nginx reverse proxy for frontend (optional but recommended)
+  nginx-jenkins:
+    image: nginx:alpine
+    container_name: mern-nginx-jenkins
+    ports:
+      - "81:80"  # Different port (81 instead of 80)
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend-jenkins
+    networks:
+      - mern-jenkins-network
+    restart: unless-stopped
+
+# Named volumes for data persistence
+volumes:
+  mongodb_jenkins_data:
+    driver: local
+
+# Network configuration
+networks:
+  mern-jenkins-network:
+    driver: bridge
