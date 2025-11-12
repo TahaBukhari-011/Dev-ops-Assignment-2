@@ -9,7 +9,7 @@ pipeline {
     
     environment {
         // GitHub Repository Configuration
-        GIT_REPO = 'https://github.com/TahaBukhari-011/mern-auth-app.git'
+        GIT_REPO = 'https://github.com/TahaBukhari-011/Dev-ops-Assignment-2.git'
         GIT_BRANCH = 'main'
         
         // Docker Configuration
