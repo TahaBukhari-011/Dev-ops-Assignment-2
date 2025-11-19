@@ -1,7 +1,6 @@
 /* 
  * Part-II: Jenkins Pipeline for MERN Auth Application
- * This pipeline automates the build phase using Docker containers
- * It fetches code from GitHub and builds the application in a containerized environment
+ * This pipeline pulls pre-built images from Docker Hub and deploys them
  */
 
 pipeline {
@@ -28,12 +27,13 @@ pipeline {
                     echo '================================================'
                 }
                 
-                // Clean workspace before checkout
-                deleteDir()
+                // Clean workspace before checkout using shell command
+                sh 'rm -rf ./*'
                 
                 // Checkout code from GitHub
                 git branch: "${GIT_BRANCH}",
-                    url: "${GIT_REPO}"
+                    url: "${GIT_REPO}",
+                    credentialsId: '89b7d431-b2e0-49a5-980a-1171f4e1c2f7'
                 
                 script {
                     echo 'Code successfully fetched from GitHub repository'
@@ -71,7 +71,7 @@ pipeline {
             steps {
                 script {
                     echo '================================================'
-                    echo 'Stage 3: Cleaning Up Previous Builds'
+                    echo 'Stage 3: Cleaning Up Previous Deployment'
                     echo '================================================'
                 }
                 
@@ -86,49 +86,23 @@ pipeline {
             }
         }
         
-        stage('Build Backend in Container') {
+        stage('Pull Images from Docker Hub') {
             steps {
                 script {
                     echo '================================================'
-                    echo 'Stage 4: Building Backend in Docker Container'
+                    echo 'Stage 4: Pulling Images from Docker Hub'
                     echo '================================================'
                 }
                 
-                // Build backend service using Docker
+                // Pull latest images from Docker Hub
                 sh """
-                    echo "Building backend application in containerized environment..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} up -d mongodb-jenkins
+                    echo "Pulling backend image from Docker Hub..."
+                    docker pull tahabukhari/mern-backend:latest
                     
-                    echo "Waiting for MongoDB to be ready..."
-                    sleep 10
+                    echo "Pulling frontend image from Docker Hub..."
+                    docker pull tahabukhari/mern-frontend:latest
                     
-                    echo "Installing backend dependencies..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} run --rm backend-jenkins sh -c "npm install"
-                    
-                    echo "Backend build completed successfully"
-                """
-            }
-        }
-        
-        stage('Build Frontend in Container') {
-            steps {
-                script {
-                    echo '================================================'
-                    echo 'Stage 5: Building Frontend in Docker Container'
-                    echo '================================================'
-                }
-                
-                // Build frontend service using Docker
-                sh """
-                    echo "Building frontend application in containerized environment..."
-                    
-                    echo "Installing frontend dependencies..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} run --rm frontend-jenkins sh -c "npm install"
-                    
-                    echo "Building production-ready frontend..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} run --rm frontend-jenkins sh -c "npm run build"
-                    
-                    echo "Frontend build completed successfully"
+                    echo "Images pulled successfully"
                 """
             }
         }
@@ -137,7 +111,7 @@ pipeline {
             steps {
                 script {
                     echo '================================================'
-                    echo 'Stage 6: Launching Application Containers'
+                    echo 'Stage 5: Launching Application Containers'
                     echo '================================================'
                 }
                 
@@ -165,14 +139,14 @@ pipeline {
                 
                 // Verify services are running
                 sh """
-                    echo "Checking backend health..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} exec -T backend-jenkins wget -q -O- http://localhost:5000/api/health || echo "Backend health check failed"
+                    echo "Waiting for services to be healthy..."
+                    sleep 15
                     
                     echo "Listing running containers..."
-                    docker ps --filter "name=mern-*-jenkins"
+                    docker ps --filter "name=jenkins-mern-*"
                     
                     echo "Checking container logs..."
-                    docker-compose -f ${DOCKER_COMPOSE_FILE} logs --tail=20 backend-jenkins
+                    docker-compose -f ${DOCKER_COMPOSE_FILE} logs --tail=20
                 """
             }
         }
@@ -181,15 +155,15 @@ pipeline {
             steps {
                 script {
                     echo '================================================'
-                    echo 'Stage 8: Generating Build Report'
+                    echo 'Stage 6: Generating Deployment Report'
                     echo '================================================'
                 }
                 
                 sh """
-                    echo "Build Summary:"
-                    echo "=============="
+                    echo "Deployment Summary:"
+                    echo "==================="
                     echo "Project: ${PROJECT_NAME}"
-                    echo "Build Time: \$(date)"
+                    echo "Deployment Time: \$(date)"
                     echo "Git Repository: ${GIT_REPO}"
                     echo "Git Branch: ${GIT_BRANCH}"
                     echo ""
@@ -197,9 +171,8 @@ pipeline {
                     docker-compose -f ${DOCKER_COMPOSE_FILE} ps
                     echo ""
                     echo "Application URLs:"
-                    echo "- Backend API: http://localhost:5001"
-                    echo "- Frontend: http://localhost:3001"
-                    echo "- Nginx Proxy: http://localhost:81"
+                    echo "- Backend API: http://56.228.10.255:5001"
+                    echo "- Frontend: http://56.228.10.255:81"
                     echo "- MongoDB: mongodb://localhost:27018"
                 """
             }
@@ -211,13 +184,11 @@ pipeline {
             echo '================================================'
             echo 'BUILD SUCCESSFUL!'
             echo '================================================'
-            echo 'The MERN application has been successfully built'
-            echo 'and deployed in containerized environment.'
+            echo 'The MERN application has been successfully deployed'
             echo ''
             echo 'Access the application at:'
-            echo '- Frontend: http://localhost:3001'
-            echo '- Backend API: http://localhost:5001/api/health'
-            echo '- Nginx Proxy: http://localhost:81'
+            echo '- Frontend: http://56.228.10.255:81'
+            echo '- Backend API: http://56.228.10.255:5001'
             echo '================================================'
         }
         
@@ -228,7 +199,7 @@ pipeline {
             echo 'Please check the logs above for error details.'
             echo 'Common issues:'
             echo '1. Docker daemon not running'
-            echo '2. Port conflicts (5001, 3001, 81, 27018)'
+            echo '2. Port conflicts (5001, 81, 27018)'
             echo '3. Network connectivity issues'
             echo '4. Insufficient system resources'
             echo '================================================'
@@ -245,7 +216,6 @@ pipeline {
             echo 'Pipeline Execution Completed'
             echo '================================================'
             
-            // Archive build artifacts (optional)
             sh """
                 echo "Build completed at: \$(date)"
                 echo "Workspace: ${WORKSPACE}"
@@ -253,5 +223,3 @@ pipeline {
         }
     }
 }
-   
- 
