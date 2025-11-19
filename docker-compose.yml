@@ -27,6 +27,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    image: tahabukhari/mern-backend:latest
     container_name: mern-backend
     ports:
       - "5000:5000"
@@ -51,6 +52,7 @@ services:
       dockerfile: Dockerfile
       args:
         - REACT_APP_API_URL=http://56.228.10.255:5000/api
+    image: tahabukhari/mern-frontend:latest
     container_name: mern-frontend
     ports:
       - "80:80"

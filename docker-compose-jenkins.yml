@@ -15,11 +15,8 @@ services:
     networks:
       - jenkins-mern-network
 
-  # Backend API (Built from Dockerfile - Production mode)
+  # Backend API (Pulls pre-built image from Docker Hub)
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
     image: tahabukhari/mern-backend:latest
     container_name: jenkins-mern-backend
     restart: unless-stopped
@@ -37,13 +34,8 @@ services:
     networks:
       - jenkins-mern-network
 
-  # Frontend React App (Built from Dockerfile - Production mode with Nginx)
+  # Frontend React App (Pulls pre-built image from Docker Hub)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        REACT_APP_API_URL: http://56.228.10.255:5001/api
     image: tahabukhari/mern-frontend:latest
     container_name: jenkins-mern-frontend
     restart: unless-stopped
